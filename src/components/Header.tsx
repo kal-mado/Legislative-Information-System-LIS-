@@ -23,14 +23,14 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold tracking-tight text-white font-sans">
-                LegisTrack <span className="text-blue-400 font-semibold">LIS</span>
+                Legislative Information System <span className="text-blue-400 font-semibold">(LIS)</span>
               </h1>
               <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-blue-900/60 text-blue-300 border border-blue-700/50">
-                v2.6 Enterprise
+                Official Archive
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              Precision Legislative Repository • Resolutions & Ordinances
+            <p className="text-xs text-slate-300 font-medium">
+              Municipality of Mutia, Zamboanga del Norte
             </p>
           </div>
         </div>

@@ -125,7 +125,7 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-1 rounded bg-blue-100 text-blue-800 text-xs font-bold font-mono tracking-wider">
-                CORE MODULE 3
+                LEGISLATIVE SEARCH
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-sans tracking-tight">
                 Title-Based Precision Search Engine

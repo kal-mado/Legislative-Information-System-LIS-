@@ -1,6 +1,6 @@
 {
-  "name": "LegisTrack LIS",
-  "description": "Secure Legislative Information System for Resolutions and Ordinances featuring title precision search, OCR ingestion, and standardized metadata indexing.",
+  "name": "Legislative Information System (LIS)",
+  "description": "Legislative Information System (LIS) for the Municipality of Mutia, Zamboanga del Norte, featuring title precision search, OCR review, and standardized legislative record indexing.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

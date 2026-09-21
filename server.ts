@@ -33,7 +33,7 @@ function getAIClient(): GoogleGenAI | null {
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
-    system: 'LegisTrack LIS — Legislative Information System',
+    system: 'Legislative Information System (LIS) — Municipality of Mutia, Zamboanga del Norte',
     timestamp: new Date().toISOString(),
     documentsCount: legislativeRepository.length,
     geminiConfigured: !!process.env.GEMINI_API_KEY,

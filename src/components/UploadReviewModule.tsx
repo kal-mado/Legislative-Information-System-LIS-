@@ -294,7 +294,7 @@ export const UploadReviewModule: React.FC<UploadReviewModuleProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-1 rounded bg-indigo-100 text-indigo-800 text-xs font-bold font-mono tracking-wider">
-                CORE MODULES 1 & 2
+                OCR & INGESTION
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-sans tracking-tight">
                 Document Scanning, OCR & Metadata Review

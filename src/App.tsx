@@ -104,7 +104,7 @@ export default function App() {
               LIS
             </div>
             <span>
-              Legislative Information System • Standardized Resolution & Ordinance Catalog
+              Legislative Information System (LIS) • Municipality of Mutia, Zamboanga del Norte
             </span>
           </div>
 
