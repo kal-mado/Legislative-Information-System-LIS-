@@ -1,0 +1,7 @@
+{
+  "name": "LegisTrack LIS",
+  "description": "Secure Legislative Information System for Resolutions and Ordinances featuring title precision search, OCR ingestion, and standardized metadata indexing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
