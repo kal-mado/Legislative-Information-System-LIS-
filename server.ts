@@ -343,6 +343,22 @@ app.post('/api/documents', (req, res) => {
   }
 });
 
+// Delete / Remove Document from Repository
+app.delete('/api/documents/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const initialLen = legislativeRepository.length;
+    legislativeRepository = legislativeRepository.filter(doc => doc.id !== id);
+    if (legislativeRepository.length < initialLen) {
+      res.json({ success: true, message: 'Resolution removed successfully.', remainingCount: legislativeRepository.length });
+    } else {
+      res.status(404).json({ error: 'Resolution document not found.' });
+    }
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to remove document' });
+  }
+});
+
 // Reset Repository to Seed State
 app.post('/api/documents/reset', (req, res) => {
   legislativeRepository = [...SEED_LEGISLATIVE_DOCUMENTS];

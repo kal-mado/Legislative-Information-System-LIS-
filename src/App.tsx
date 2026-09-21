@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { PrecisionSearchModule } from './components/PrecisionSearchModule';
 import { UploadReviewModule } from './components/UploadReviewModule';
-import { ArchitectureHub } from './components/ArchitectureHub';
 import { DocumentDetailModal } from './components/DocumentDetailModal';
 import { FormatExplainerModal } from './components/FormatExplainerModal';
 import { LegislativeDocument, SearchResultItem } from './types';
 import { SEED_LEGISLATIVE_DOCUMENTS } from './data/seedDocuments';
-import { Shield, BookOpen, Database, RefreshCw } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'search' | 'upload' | 'architecture'>('search');
+  const [activeTab, setActiveTab] = useState<'search' | 'upload'>('search');
   const [documents, setDocuments] = useState<LegislativeDocument[]>(SEED_LEGISLATIVE_DOCUMENTS);
   const [selectedResultItem, setSelectedResultItem] = useState<SearchResultItem | null>(null);
   const [isFormatGuideOpen, setIsFormatGuideOpen] = useState(false);
@@ -41,8 +39,19 @@ export default function App() {
 
   const handleDocumentSaved = (newDoc: LegislativeDocument) => {
     setDocuments((prev) => [newDoc, ...prev]);
-    // Optional: offer quick switch to search tab to see it
     setActiveTab('search');
+  };
+
+  const handleDeleteDocument = async (id: string) => {
+    try {
+      await fetch(`/api/documents/${id}`, { method: 'DELETE' });
+    } catch (err) {
+      console.warn('Backend delete error:', err);
+    }
+    setDocuments((prev) => prev.filter((d) => d.id !== id));
+    if (selectedResultItem?.document.id === id) {
+      setSelectedResultItem(null);
+    }
   };
 
   return (
@@ -52,7 +61,6 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         documentCount={documents.length}
-        onOpenFormatGuide={() => setIsFormatGuideOpen(true)}
       />
 
       {/* Main App Workspace */}
@@ -63,6 +71,7 @@ export default function App() {
             onSelectDocument={(item) => setSelectedResultItem(item)}
             onOpenFormatGuide={() => setIsFormatGuideOpen(true)}
             onSwitchToUpload={() => setActiveTab('upload')}
+            onDeleteDocument={handleDeleteDocument}
           />
         )}
 
@@ -72,16 +81,13 @@ export default function App() {
             onOpenFormatGuide={() => setIsFormatGuideOpen(true)}
           />
         )}
-
-        {activeTab === 'architecture' && (
-          <ArchitectureHub />
-        )}
       </main>
 
       {/* Document Detail Modal */}
       <DocumentDetailModal
         item={selectedResultItem}
         onClose={() => setSelectedResultItem(null)}
+        onDeleteDocument={handleDeleteDocument}
       />
 
       {/* Standard Title Format Rules Modal */}
@@ -103,23 +109,11 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-4 text-slate-500">
-            <span className="flex items-center gap-1">
-              <Database className="w-3.5 h-3.5" />
-              PostgreSQL Schema (pg_trgm enabled)
-            </span>
-            <span>•</span>
             <button
               onClick={() => setIsFormatGuideOpen(true)}
               className="text-slate-400 hover:text-white underline underline-offset-2 cursor-pointer"
             >
               Format Syntax Rules
-            </button>
-            <span>•</span>
-            <button
-              onClick={() => setActiveTab('architecture')}
-              className="text-slate-400 hover:text-white underline underline-offset-2 cursor-pointer"
-            >
-              Architecture & SQL
             </button>
           </div>
         </div>

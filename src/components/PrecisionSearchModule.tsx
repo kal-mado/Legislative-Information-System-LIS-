@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Search, SlidersHorizontal, ArrowUpDown, Filter, Sparkles, AlertCircle, 
   CheckCircle2, FileText, Calendar, User, Tag, ExternalLink, Zap, 
-  BookOpen, ChevronRight, X, Layers, ShieldCheck
+  BookOpen, ChevronRight, X, Layers, ShieldCheck, Trash2
 } from 'lucide-react';
 import { LegislativeDocument, SearchPriority, SearchResultItem, SearchQueryFilters } from '../types';
 import { rankDocumentForQuery } from '../utils/titleEngine';
@@ -12,6 +12,7 @@ interface PrecisionSearchModuleProps {
   onSelectDocument: (item: SearchResultItem) => void;
   onOpenFormatGuide: () => void;
   onSwitchToUpload: () => void;
+  onDeleteDocument?: (id: string) => void;
 }
 
 export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
@@ -19,6 +20,7 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
   onSelectDocument,
   onOpenFormatGuide,
   onSwitchToUpload,
+  onDeleteDocument,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFullText, setIsFullText] = useState(false);
@@ -431,9 +433,25 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:text-blue-800">
-                      <span>Inspect Record</span>
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                    <div className="flex items-center gap-2">
+                      {onDeleteDocument && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteDocument(doc.id);
+                          }}
+                          className="px-2 py-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors flex items-center gap-1 text-xs cursor-pointer"
+                          title="Remove resolution"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Remove</span>
+                        </button>
+                      )}
+                      <div className="flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:text-blue-800">
+                        <span>Inspect Record</span>
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                      </div>
                     </div>
                   </div>
                 </div>

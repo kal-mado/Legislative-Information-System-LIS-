@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { 
   UploadCloud, FileUp, CheckCircle2, AlertTriangle, RefreshCw, 
   ArrowRight, ShieldCheck, Sparkles, FileText, Database, Eye, 
-  Check, X, Wand2, Info, Layers
+  Check, X, Wand2, Info, Layers, Trash2
 } from 'lucide-react';
 import { LegislativeDocument, UploadBatchItem } from '../types';
 import { SAMPLE_OCR_DOCUMENTS } from '../data/seedDocuments';
@@ -23,21 +23,39 @@ export const UploadReviewModule: React.FC<UploadReviewModuleProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
 
-  // Form State for Active Review Item
-  const [formData, setFormData] = useState<Partial<LegislativeDocument>>({
+  const emptyFormData: Partial<LegislativeDocument> = {
     doc_type: 'Resolution',
-    resolution_number: 'Resolution No. 2026-045',
-    resolution_title: 'Resolution No. 2026-045: A RESOLUTION AUTHORIZING THE LOCAL CHIEF EXECUTIVE TO ENTER INTO A MEMORANDUM OF AGREEMENT FOR HEALTH SERVICES',
+    resolution_number: '',
+    resolution_title: '',
     normalized_title: '',
-    date_passed: '2026-03-14',
-    date_approved: '2026-03-18',
-    author_sponsors: ['Hon. Maria Elena Santos', 'Hon. Arthur Pendelton'],
-    keywords: ['Health Services', 'Memorandum of Agreement', 'Public Health'],
-    committee_referral: 'Committee on Health and Sanitation',
+    date_passed: '',
+    date_approved: '',
+    author_sponsors: [],
+    keywords: [],
+    committee_referral: '',
     classification_status: 'Enacted',
     ocr_fulltext: '',
-    ocr_confidence: 98.4,
-  });
+    ocr_confidence: 0,
+    file_name: '',
+    file_path: '',
+  };
+
+  // Form State for Active Review Item (Starts empty until user uploads or selects a measure)
+  const [formData, setFormData] = useState<Partial<LegislativeDocument>>(emptyFormData);
+
+  const handleResetForm = () => {
+    setFormData(emptyFormData);
+    setAuthorInput('');
+    setKeywordInput('');
+    setSaveSuccessMessage(null);
+  };
+
+  const handleRemoveQueueItem = (id: string) => {
+    setProcessingQueue((prev) => prev.filter((item) => item.id !== id));
+    if (processingQueue.length <= 1) {
+      handleResetForm();
+    }
+  };
 
   const [authorInput, setAuthorInput] = useState('');
   const [keywordInput, setKeywordInput] = useState('');
@@ -408,7 +426,7 @@ export const UploadReviewModule: React.FC<UploadReviewModuleProps> = ({
                   </div>
                 </div>
 
-                <div className="flex-shrink-0 ml-2">
+                <div className="flex-shrink-0 ml-2 flex items-center gap-1.5">
                   {item.status === 'ready_for_review' && (
                     <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold text-[10px]">
                       Ready
@@ -424,6 +442,17 @@ export const UploadReviewModule: React.FC<UploadReviewModuleProps> = ({
                       Scanning
                     </span>
                   )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveQueueItem(item.id);
+                    }}
+                    className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                    title="Remove item"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -442,7 +471,7 @@ export const UploadReviewModule: React.FC<UploadReviewModuleProps> = ({
                 <h3 className="font-bold text-slate-900 text-sm">Document OCR Digitized Stream</h3>
               </div>
               <span className="text-[11px] font-mono font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                Confidence: {formData.ocr_confidence || 98.4}%
+                Confidence: {formData.ocr_confidence || 0}%
               </span>
             </div>
 
@@ -451,20 +480,22 @@ export const UploadReviewModule: React.FC<UploadReviewModuleProps> = ({
             </p>
 
             <div className="mt-3 flex-1 min-h-[360px] max-h-[550px] overflow-y-auto bg-slate-900 text-slate-100 p-4 rounded-xl font-mono text-xs leading-relaxed border border-slate-800 whitespace-pre-wrap">
-              {formData.ocr_fulltext ||
-                `REPUBLIC OF THE PHILIPPINES
-OFFICE OF THE SANGGUNIANG BAYAN
-LEGISLATIVE SESSION JOURNAL
-
-RESOLUTION NO. 2026-045
-A RESOLUTION AUTHORIZING THE LOCAL CHIEF EXECUTIVE TO ENTER INTO A MEMORANDUM OF AGREEMENT FOR HEALTH SERVICES WITH THE DEPARTMENT OF HEALTH REGIONAL OFFICE.
-
-[Awaiting file scan... OCR stream will populate automatically upon upload or sample selection]`}
+              {formData.ocr_fulltext ? (
+                formData.ocr_fulltext
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 text-slate-500 font-sans min-h-[280px]">
+                  <FileText className="w-12 h-12 text-slate-700 mb-3" />
+                  <p className="font-semibold text-slate-300 text-sm">No Document Scanned</p>
+                  <p className="text-xs text-slate-500 max-w-xs mt-1 leading-relaxed">
+                    Upload a legislative file above or click a sample simulation button to begin automatic OCR text stream digitization.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
               <span>MIME: {formData.mime_type || 'application/pdf'}</span>
-              <span>Storage: {formData.file_path || '/storage/legislative/2026/'}</span>
+              <span>Storage: {formData.file_path || '/storage/legislative/'}</span>
             </div>
           </div>
         </div>
@@ -477,9 +508,22 @@ A RESOLUTION AUTHORIZING THE LOCAL CHIEF EXECUTIVE TO ENTER INTO A MEMORANDUM OF
                 <h3 className="font-bold text-slate-900 text-base">Metadata Review & Title Verification</h3>
                 <p className="text-xs text-slate-500">Auto-extracted from document header. Enforces format validation.</p>
               </div>
-              <span className="px-2.5 py-1 rounded bg-blue-50 text-blue-700 text-xs font-mono font-bold border border-blue-200">
-                Step 5 of 6
-              </span>
+              <div className="flex items-center gap-2">
+                {(formData.resolution_title || formData.resolution_number || formData.ocr_fulltext) && (
+                  <button
+                    type="button"
+                    onClick={handleResetForm}
+                    className="px-2.5 py-1 rounded text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors flex items-center gap-1 cursor-pointer"
+                    title="Remove / Clear loaded resolution"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Clear Form</span>
+                  </button>
+                )}
+                <span className="px-2.5 py-1 rounded bg-blue-50 text-blue-700 text-xs font-mono font-bold border border-blue-200">
+                  Step 5 of 6
+                </span>
+              </div>
             </div>
 
             {/* Title Standard Validation Banner */}

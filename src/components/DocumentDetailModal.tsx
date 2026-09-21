@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { X, FileText, Calendar, User, Tag, HardDrive, CheckCircle2, Shield, Copy, Check, Code, Eye, FileSpreadsheet } from 'lucide-react';
+import { X, FileText, Calendar, User, Tag, HardDrive, CheckCircle2, Shield, Copy, Check, Code, Eye, FileSpreadsheet, Trash2 } from 'lucide-react';
 import { LegislativeDocument, SearchResultItem } from '../types';
 
 interface DocumentDetailModalProps {
   item: SearchResultItem | null;
   onClose: () => void;
+  onDeleteDocument?: (id: string) => void;
 }
 
-export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({ item, onClose }) => {
+export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({ item, onClose, onDeleteDocument }) => {
   const [activeTab, setActiveTab] = useState<'details' | 'ocr' | 'database' | 'diagnostics'>('details');
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -388,8 +389,24 @@ export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({ item, 
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-          <span>Legislative Record ID: {doc.id.slice(0, 18)}...</span>
+        <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+          <div className="flex items-center gap-3">
+            <span>Legislative Record ID: {doc.id.slice(0, 18)}...</span>
+            {onDeleteDocument && (
+              <button
+                type="button"
+                onClick={() => {
+                  onDeleteDocument(doc.id);
+                  onClose();
+                }}
+                className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+                title="Remove this resolution from catalog"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Remove Resolution</span>
+              </button>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="px-4 py-2 rounded-lg bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors cursor-pointer"

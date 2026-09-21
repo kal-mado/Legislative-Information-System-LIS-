@@ -1,50 +1,18 @@
 import React from 'react';
-import { Search, UploadCloud, Database, FileText, CheckCircle2, ShieldCheck, Sparkles, BookOpen } from 'lucide-react';
+import { Search, UploadCloud, FileText } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'search' | 'upload' | 'architecture';
-  setActiveTab: (tab: 'search' | 'upload' | 'architecture') => void;
+  activeTab: 'search' | 'upload';
+  setActiveTab: (tab: 'search' | 'upload') => void;
   documentCount: number;
-  onOpenFormatGuide: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
-  documentCount,
-  onOpenFormatGuide,
 }) => {
   return (
     <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-30 shadow-md">
-      {/* Top Meta Bar */}
-      <div className="bg-slate-950/80 border-b border-slate-800/80 px-4 py-1.5 text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-800/50 font-medium">
-              <ShieldCheck className="w-3 h-3" />
-              SANGGUNIAN OFFICIAL ARCHIVE
-            </span>
-            <span className="hidden sm:inline text-slate-500">|</span>
-            <span className="hidden sm:inline">Legislative Management Information System (LIS)</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>PostgreSQL + pg_trgm Engine:</span>
-              <span className="font-semibold text-emerald-400">{documentCount} Measures Indexed</span>
-            </div>
-            <button
-              onClick={onOpenFormatGuide}
-              className="text-xs text-blue-400 hover:text-blue-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer transition-colors"
-            >
-              <BookOpen className="w-3 h-3" />
-              Title Standard Rules
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Main Navigation Header */}
       <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Brand & Identity */}
@@ -93,19 +61,6 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <UploadCloud className="w-4 h-4" />
             <span>Upload & OCR Review</span>
-          </button>
-
-          <button
-            id="tab-architecture-specs"
-            onClick={() => setActiveTab('architecture')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
-              activeTab === 'architecture'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <Database className="w-4 h-4" />
-            <span>System Architecture & SQL</span>
           </button>
         </nav>
       </div>
