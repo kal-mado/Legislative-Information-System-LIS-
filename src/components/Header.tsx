@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, UploadCloud, FileText } from 'lucide-react';
+import { Search, UploadCloud, FileText, Printer } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'search' | 'upload';
@@ -60,7 +60,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <UploadCloud className="w-4 h-4" />
-            <span>Upload & OCR Review</span>
+            <span>Upload Resolution</span>
           </button>
         </nav>
       </div>

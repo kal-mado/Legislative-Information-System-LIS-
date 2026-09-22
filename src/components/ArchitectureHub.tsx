@@ -359,13 +359,10 @@ export const ArchitectureHub: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-12 gap-2 text-center text-[10px]">
-                  <div className="col-span-5 border border-slate-200 p-2 rounded bg-slate-50">
-                    [Toggle: Targeted Title Search (Zero Noise) vs Full-Text OCR]
-                  </div>
-                  <div className="col-span-4 border border-slate-200 p-2 rounded bg-slate-50">
+                  <div className="col-span-7 border border-slate-200 p-2 rounded bg-slate-50">
                     [Prefix Filter Dropdown: A RESOLUTION AUTHORIZING...]
                   </div>
-                  <div className="col-span-3 border border-slate-200 p-2 rounded bg-slate-50">
+                  <div className="col-span-5 border border-slate-200 p-2 rounded bg-slate-50">
                     [Facets: Type | Year | Sort]
                   </div>
                 </div>

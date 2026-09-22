@@ -11,6 +11,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'search' | 'upload'>('search');
   const [documents, setDocuments] = useState<LegislativeDocument[]>(SEED_LEGISLATIVE_DOCUMENTS);
   const [selectedResultItem, setSelectedResultItem] = useState<SearchResultItem | null>(null);
+  const [modalInitialTab, setModalInitialTab] = useState<'record' | 'print' | 'edit'>('record');
   const [isFormatGuideOpen, setIsFormatGuideOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -54,6 +55,17 @@ export default function App() {
     }
   };
 
+  const handleUpdateDocument = (updatedDoc: LegislativeDocument) => {
+    setDocuments((prev) => prev.map((d) => (d.id === updatedDoc.id ? updatedDoc : d)));
+    setSelectedResultItem((prev) => {
+      if (!prev || prev.document.id !== updatedDoc.id) return prev;
+      return {
+        ...prev,
+        document: updatedDoc,
+      };
+    });
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
       {/* Navigation Header */}
@@ -68,10 +80,23 @@ export default function App() {
         {activeTab === 'search' && (
           <PrecisionSearchModule
             documents={documents}
-            onSelectDocument={(item) => setSelectedResultItem(item)}
+            onSelectDocument={(item) => {
+              setSelectedResultItem(item);
+              setModalInitialTab('record');
+            }}
             onOpenFormatGuide={() => setIsFormatGuideOpen(true)}
             onSwitchToUpload={() => setActiveTab('upload')}
             onDeleteDocument={handleDeleteDocument}
+            onSwitchToPrint={(doc) => {
+              setSelectedResultItem({
+                document: doc,
+                score: 100,
+                priority: 1,
+                priorityLabel: 'Direct Selection',
+                matchedCriteria: ['Direct Print Action'],
+              });
+              setModalInitialTab('print');
+            }}
           />
         )}
 
@@ -86,8 +111,10 @@ export default function App() {
       {/* Document Detail Modal */}
       <DocumentDetailModal
         item={selectedResultItem}
+        initialTab={modalInitialTab}
         onClose={() => setSelectedResultItem(null)}
         onDeleteDocument={handleDeleteDocument}
+        onUpdateDocument={handleUpdateDocument}
       />
 
       {/* Standard Title Format Rules Modal */}

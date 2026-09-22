@@ -292,16 +292,11 @@ export const UploadReviewModule: React.FC<UploadReviewModuleProps> = ({
       <div className="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded bg-indigo-100 text-indigo-800 text-xs font-bold font-mono tracking-wider">
-                OCR & INGESTION
-              </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-sans tracking-tight">
-                Document Scanning, OCR & Metadata Review
-              </h2>
-            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-sans tracking-tight">
+              Upload Resolution
+            </h2>
             <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl">
-              Drag-and-drop batch upload supporting PDF, DOCX, PNG, and JPG. Automated OCR digitization extracts document headers and enforces the standardized title syntax before database commitment.
+              Drag-and-drop batch upload supporting PDF, DOCX, PNG, and JPG. Digitizes document headers and verifies resolution metadata before saving to the archive.
             </p>
           </div>
 

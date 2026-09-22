@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Search, SlidersHorizontal, ArrowUpDown, Filter, Sparkles, AlertCircle, 
   CheckCircle2, FileText, Calendar, User, Tag, ExternalLink, Zap, 
-  BookOpen, ChevronRight, X, Layers, ShieldCheck, Trash2
+  BookOpen, ChevronRight, X, Layers, ShieldCheck, Trash2, Printer
 } from 'lucide-react';
 import { LegislativeDocument, SearchPriority, SearchResultItem, SearchQueryFilters } from '../types';
 import { rankDocumentForQuery } from '../utils/titleEngine';
@@ -13,6 +13,7 @@ interface PrecisionSearchModuleProps {
   onOpenFormatGuide: () => void;
   onSwitchToUpload: () => void;
   onDeleteDocument?: (id: string) => void;
+  onSwitchToPrint?: (doc: LegislativeDocument) => void;
 }
 
 export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
@@ -21,6 +22,7 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
   onOpenFormatGuide,
   onSwitchToUpload,
   onDeleteDocument,
+  onSwitchToPrint,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFullText, setIsFullText] = useState(false);
@@ -119,43 +121,13 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Search Header Banner */}
-      <div className="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded bg-blue-100 text-blue-800 text-xs font-bold font-mono tracking-wider">
-                LEGISLATIVE SEARCH
-              </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-sans tracking-tight">
-                Title-Based Precision Search Engine
-              </h2>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl">
-              Strictly prioritizes the <strong>Title Field</strong> and <strong>Resolution Series</strong> to prevent noisy or irrelevant search results from matching arbitrary body text.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onOpenFormatGuide}
-              className="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300/80 flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-blue-600" />
-              Standard Syntax
-            </button>
-            <button
-              onClick={onSwitchToUpload}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Zap className="w-3.5 h-3.5" />
-              Upload & Scan
-            </button>
-          </div>
-        </div>
-
+      {/* Search Header Container */}
+      <div className="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200 shadow-sm space-y-4">
         {/* Primary Search Input Box */}
-        <div className="mt-5 space-y-3">
+        <div className="space-y-2">
+          <label htmlFor="precision-search-input" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            Resolution No. / Title / Subject
+          </label>
           <div className="relative flex items-center">
             <div className="absolute left-4 text-slate-400 pointer-events-none">
               <Search className="w-5 h-5 text-blue-600" />
@@ -165,8 +137,8 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search resolutions e.g., 'Health Services', 2026-045, Health AND Agreement..."
-              className="w-full pl-12 pr-28 py-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 text-sm sm:text-base focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600 transition-all font-sans"
+              placeholder="Resolution No. / Title / Subject"
+              className="w-full pl-12 pr-28 py-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 text-sm sm:text-base focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600 transition-all font-sans font-medium"
             />
             {searchQuery && (
               <button
@@ -186,10 +158,10 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
           </div>
 
           {/* Quick Syntax Presets */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs pt-1">
             <span className="text-slate-500 font-medium mr-1 flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-amber-500" />
-              Try Precision Criteria:
+              Quick Filters:
             </span>
             {PRESET_QUERIES.map((preset, idx) => (
               <button
@@ -204,37 +176,10 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
           </div>
         </div>
 
-        {/* Search Mode & Prefix Control Bar */}
-        <div className="mt-5 pt-4 border-t border-slate-200/70 grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
-          {/* Targeted Title Search vs Full-Text Mode Switch */}
-          <div className="lg:col-span-5 p-2 rounded-xl bg-slate-100/80 border border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${!isFullText ? 'bg-emerald-500' : 'bg-purple-500'}`}></span>
-              <div>
-                <span className="text-xs font-bold text-slate-900">
-                  {!isFullText ? 'Targeted Title Search' : 'Full-Text Search Mode'}
-                </span>
-                <p className="text-[10px] text-slate-500">
-                  {!isFullText ? 'Restricted to title & series (Zero body noise)' : 'Includes document body OCR text'}
-                </p>
-              </div>
-            </div>
-
-            <button
-              id="toggle-full-text-mode"
-              onClick={() => setIsFullText(!isFullText)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                isFullText
-                  ? 'bg-purple-600 text-white shadow-sm'
-                  : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              {isFullText ? 'Full-Text Active' : 'Enable Full-Text'}
-            </button>
-          </div>
-
+        {/* Prefix & Facet Filters */}
+        <div className="pt-3 border-t border-slate-200/70 flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Prefix Filter Dropdown */}
-          <div className="lg:col-span-4 flex items-center gap-2">
+          <div className="w-full sm:w-auto flex-1 flex items-center gap-2 max-w-md">
             <Filter className="w-4 h-4 text-slate-400 flex-shrink-0" />
             <select
               id="prefix-filter-select"
@@ -251,7 +196,7 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
           </div>
 
           {/* Facets & Sort */}
-          <div className="lg:col-span-3 flex items-center gap-2 justify-end">
+          <div className="w-full sm:w-auto flex items-center gap-2 justify-end flex-wrap">
             <select
               value={selectedDocType}
               onChange={(e) => setSelectedDocType(e.target.value as any)}
@@ -446,6 +391,20 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span className="hidden sm:inline">Remove</span>
+                        </button>
+                      )}
+                      {onSwitchToPrint && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSwitchToPrint(doc);
+                          }}
+                          className="px-2.5 py-1 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors flex items-center gap-1 text-xs font-semibold cursor-pointer"
+                          title="Configure & Print Resolution"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Print</span>
                         </button>
                       )}
                       <div className="flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:text-blue-800">

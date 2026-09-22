@@ -75,3 +75,80 @@ export interface TitleStandardValidationResult {
   suggestedFormattedTitle?: string;
   errors: string[];
 }
+
+// -------------------------------------------------------------
+// PRINT MODULE TYPES & INTERFACES
+// -------------------------------------------------------------
+
+export type PrinterStatus = 'Ready' | 'Busy' | 'Offline' | 'Out of Paper' | 'Low Toner';
+export type PrinterConnectionType = 'Network (LAN/IP)' | 'Local (USB)' | 'Direct CUPS/IPP' | 'System Virtual';
+export type PaperSize = 'Legal' | 'Letter' | 'A4' | 'Executive';
+export type ColorMode = 'Grayscale / Monochrome' | 'Official Full Color';
+export type OrientationMode = 'Portrait' | 'Landscape';
+export type WatermarkType = 
+  | 'NONE' 
+  | 'OFFICIAL COPY' 
+  | 'CERTIFIED TRUE COPY' 
+  | 'DRAFT - NOT FOR CIRCULATION' 
+  | 'ARCHIVAL RECORD' 
+  | 'FOR COMMITTEE REVIEW ONLY';
+
+export type UserRole = 
+  | 'Secretariat Administrator' 
+  | 'SB Legislative Staff' 
+  | 'Committee Stenographer' 
+  | 'Public Inquirer';
+
+export interface PrinterDevice {
+  id: string;
+  name: string;
+  model: string;
+  location: string;
+  connectionType: PrinterConnectionType;
+  ipAddress?: string;
+  port?: string;
+  status: PrinterStatus;
+  isDefault: boolean;
+  supportedPaper: PaperSize[];
+  supportsColor: boolean;
+  supportsDuplex: boolean;
+  speedPpm?: number;
+  queueLength: number;
+}
+
+export interface PrintJobSettings {
+  printerId: string;
+  paperSize: PaperSize;
+  orientation: OrientationMode;
+  colorMode: ColorMode;
+  pageRange: 'all' | 'current' | 'custom';
+  customRange: string;
+  copies: number;
+  collate: boolean;
+  watermark: WatermarkType;
+  showLineNumbers: boolean;
+  showQrSeal: boolean;
+  twoSided: 'none' | 'long_edge' | 'short_edge';
+  margins: 'default' | 'narrow' | 'wide';
+}
+
+export interface PrintLogEntry {
+  print_id: string; // UUID primary key
+  document_id: string;
+  resolution_number: string;
+  subject_title: string;
+  printed_by_id: string;
+  printed_by_name: string;
+  printed_by_role: UserRole;
+  timestamp: string;
+  printer_name: string;
+  printer_type: PrinterConnectionType;
+  copies_printed: number;
+  watermark_applied: string;
+  paper_size: string;
+  orientation: string;
+  color_mode: string;
+  security_hash: string;
+  status: 'Completed' | 'Queued' | 'Printing' | 'Cancelled';
+}
+

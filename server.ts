@@ -4,8 +4,9 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
 import { SEED_LEGISLATIVE_DOCUMENTS } from './src/data/seedDocuments.ts';
-import { LegislativeDocument } from './src/types.ts';
+import { LegislativeDocument, PrinterDevice, PrintLogEntry } from './src/types.ts';
 import { normalizeTitle, rankDocumentForQuery, validateAndParseTitle } from './src/utils/titleEngine.ts';
+import { INITIAL_MUNICIPAL_PRINTERS, generateSecurityHash } from './src/utils/printerService.ts';
 
 dotenv.config();
 
@@ -16,6 +17,51 @@ app.use(express.json({ limit: '15mb' }));
 
 // In-memory persistent store initialized with seed corpus
 let legislativeRepository: LegislativeDocument[] = [...SEED_LEGISLATIVE_DOCUMENTS];
+
+// Discovered printer devices state
+let discoveredPrinters: PrinterDevice[] = [...INITIAL_MUNICIPAL_PRINTERS];
+
+// Initial legislative print audit logs
+let printLogsRepository: PrintLogEntry[] = [
+  {
+    print_id: 'e1111111-2222-3333-4444-555555555551',
+    document_id: 'a1b2c3d4-e5f6-7a8b-9c0d-111111111111',
+    resolution_number: 'Resolution No. 2026-045',
+    subject_title: 'A RESOLUTION AUTHORIZING THE LOCAL CHIEF EXECUTIVE TO ENTER INTO A MEMORANDUM OF AGREEMENT FOR HEALTH SERVICES',
+    printed_by_id: 'USR-SEC-01',
+    printed_by_name: 'Hon. Maria Elena Santos',
+    printed_by_role: 'Secretariat Administrator',
+    timestamp: '2026-03-19T09:15:22.000Z',
+    printer_name: 'HP LaserJet Enterprise M608dn (Session Hall)',
+    printer_type: 'Network (LAN/IP)',
+    copies_printed: 3,
+    watermark_applied: 'CERTIFIED TRUE COPY',
+    paper_size: 'Legal',
+    orientation: 'Portrait',
+    color_mode: 'Grayscale / Monochrome',
+    security_hash: 'MUTIA-SB-SEC-026045-3C89AF7B',
+    status: 'Completed',
+  },
+  {
+    print_id: 'e2222222-3333-4444-5555-666666666662',
+    document_id: 'a1b2c3d4-e5f6-7a8b-9c0d-222222222222',
+    resolution_number: 'Resolution No. 2026-104',
+    subject_title: 'A RESOLUTION APPROVING THE ANNUAL DISASTER RISK REDUCTION AND CLIMATE ADAPTATION INVESTMENT PLAN FOR FISCAL YEAR 2026',
+    printed_by_id: 'USR-STF-04',
+    printed_by_name: 'Atty. Arthur Pendelton',
+    printed_by_role: 'SB Legislative Staff',
+    timestamp: '2026-05-06T14:30:10.000Z',
+    printer_name: 'Canon imageRUNNER ADVANCE DX C357i (Archives)',
+    printer_type: 'Network (LAN/IP)',
+    copies_printed: 2,
+    watermark_applied: 'OFFICIAL COPY',
+    paper_size: 'Legal',
+    orientation: 'Portrait',
+    color_mode: 'Official Full Color',
+    security_hash: 'MUTIA-SB-STF-026104-1D90A44C',
+    status: 'Completed',
+  }
+];
 
 // Gemini Client Lazy Initializer
 let aiClient: GoogleGenAI | null = null;
@@ -343,6 +389,37 @@ app.post('/api/documents', (req, res) => {
   }
 });
 
+// Update / Edit Document in Repository
+app.put('/api/documents/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const index = legislativeRepository.findIndex(doc => doc.id === id);
+    if (index === -1) {
+      return res.status(404).json({ error: 'Resolution document not found.' });
+    }
+    const existing = legislativeRepository[index];
+    const updateData = req.body;
+    const resolutionTitle = updateData.resolution_title || existing.resolution_title;
+    const updated: LegislativeDocument = {
+      ...existing,
+      ...updateData,
+      id: existing.id,
+      resolution_title: resolutionTitle,
+      normalized_title: normalizeTitle(resolutionTitle),
+      updated_at: new Date().toISOString(),
+    };
+    legislativeRepository[index] = updated;
+    res.json({
+      success: true,
+      message: 'Resolution updated successfully.',
+      document: updated,
+    });
+  } catch (error: any) {
+    console.error('Error updating document:', error);
+    res.status(500).json({ error: error.message || 'Failed to update document' });
+  }
+});
+
 // Delete / Remove Document from Repository
 app.delete('/api/documents/:id', (req, res) => {
   try {
@@ -363,6 +440,162 @@ app.delete('/api/documents/:id', (req, res) => {
 app.post('/api/documents/reset', (req, res) => {
   legislativeRepository = [...SEED_LEGISLATIVE_DOCUMENTS];
   res.json({ success: true, count: legislativeRepository.length });
+});
+
+// -------------------------------------------------------------
+// PRINT MODULE & PRINTER DISCOVERY API ENDPOINTS
+// -------------------------------------------------------------
+
+// Fetch Single Document by ID or Resolution Number
+app.get('/api/documents/:idOrNumber', (req, res) => {
+  const { idOrNumber } = req.params;
+  const decoded = decodeURIComponent(idOrNumber).trim();
+  
+  // Try exact UUID or ID match
+  let doc = legislativeRepository.find(d => d.id === decoded);
+  if (!doc) {
+    // Try resolution number match (e.g. "Resolution No. 2026-045" or "2026-045")
+    const cleanQuery = decoded.toLowerCase().replace(/[^a-z0-9]/g, '');
+    doc = legislativeRepository.find(d => {
+      const cleanNum = d.resolution_number.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const cleanSeries = d.series_number_only.toLowerCase().replace(/[^a-z0-9]/g, '');
+      return cleanNum === cleanQuery || cleanSeries === cleanQuery || cleanNum.includes(cleanQuery);
+    });
+  }
+
+  if (!doc) {
+    return res.status(404).json({ error: `Legislative document '${decoded}' not found in official repository.` });
+  }
+
+  res.json({
+    success: true,
+    document: doc,
+  });
+});
+
+// List Discovered Printers (Local USB & Network LAN/IP)
+app.get('/api/printers', (req, res) => {
+  res.json({
+    success: true,
+    timestamp: new Date().toISOString(),
+    totalDiscovered: discoveredPrinters.length,
+    printers: discoveredPrinters,
+  });
+});
+
+// Trigger Network & Local Printer Discovery Scan (mDNS / IPP Bonjour / SNMP)
+app.post('/api/printers/discover', (req, res) => {
+  // Simulate active network ping and status poll
+  discoveredPrinters = discoveredPrinters.map(printer => {
+    // Randomize slight status or queue length for realistic hardware polling
+    return {
+      ...printer,
+      queueLength: Math.max(0, printer.queueLength + (Math.random() > 0.6 ? 1 : -1)),
+    };
+  });
+
+  res.json({
+    success: true,
+    message: 'Municipal network & USB hardware print discovery completed successfully.',
+    discoveredCount: discoveredPrinters.length,
+    printers: discoveredPrinters,
+    scannedSubnets: ['192.168.10.0/24 (SB Internal LAN)', 'USB001-USB004 (Direct Bus)'],
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Dispatch Legislative Print Job & Commit to Immutable Audit Log
+app.post('/api/print-jobs', (req, res) => {
+  try {
+    const {
+      document_id,
+      resolution_number,
+      subject_title,
+      printed_by_id,
+      printed_by_name,
+      printed_by_role,
+      printer_id,
+      printer_name,
+      copies_printed = 1,
+      watermark_applied = 'NONE',
+      paper_size = 'Legal',
+      orientation = 'Portrait',
+      color_mode = 'Grayscale / Monochrome',
+    } = req.body;
+
+    if (!document_id && !resolution_number) {
+      return res.status(400).json({ error: 'Missing required document identification.' });
+    }
+
+    // Resolve document details if partial
+    const doc = legislativeRepository.find(d => d.id === document_id || d.resolution_number === resolution_number);
+    const resolvedDocId = doc ? doc.id : (document_id || 'unknown-doc');
+    const resolvedResNum = doc ? doc.resolution_number : (resolution_number || 'Official Resolution');
+    const resolvedSubject = doc ? doc.subject_title : (subject_title || 'Official Legislative Measure');
+
+    // Resolve target printer
+    const targetPrinter = discoveredPrinters.find(p => p.id === printer_id || p.name === printer_name) || discoveredPrinters[0];
+
+    // Access control check for certified copies
+    if (watermark_applied === 'CERTIFIED TRUE COPY' && printed_by_role !== 'Secretariat Administrator') {
+      return res.status(403).json({
+        error: 'Access Control Rejection: "CERTIFIED TRUE COPY" watermarks require authorized Secretariat Administrator credentials.',
+      });
+    }
+
+    // Generate cryptographic verification hash for audit log and physical print barcode
+    const securityHash = generateSecurityHash(resolvedResNum, printed_by_role || 'Secretariat');
+
+    const newLogEntry: PrintLogEntry = {
+      print_id: `prn-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      document_id: resolvedDocId,
+      resolution_number: resolvedResNum,
+      subject_title: resolvedSubject,
+      printed_by_id: printed_by_id || 'USR-ACT-CURRENT',
+      printed_by_name: printed_by_name || 'Authorized Legislative Officer',
+      printed_by_role: printed_by_role || 'Secretariat Administrator',
+      timestamp: new Date().toISOString(),
+      printer_name: targetPrinter.name,
+      printer_type: targetPrinter.connectionType,
+      copies_printed: Math.max(1, parseInt(copies_printed, 10) || 1),
+      watermark_applied,
+      paper_size,
+      orientation,
+      color_mode,
+      security_hash: securityHash,
+      status: 'Completed',
+    };
+
+    // Prepend to audit log
+    printLogsRepository.unshift(newLogEntry);
+
+    res.status(201).json({
+      success: true,
+      message: `Print job dispatched successfully to ${targetPrinter.name}.`,
+      receipt: newLogEntry,
+      printerDetails: targetPrinter,
+    });
+  } catch (error: any) {
+    console.error('Error processing print job:', error);
+    res.status(500).json({ error: error.message || 'Failed to dispatch print job.' });
+  }
+});
+
+// Fetch Print Audit Logs
+app.get('/api/print-logs', (req, res) => {
+  const { docId, limit = 50 } = req.query;
+  let logs = printLogsRepository;
+
+  if (docId && typeof docId === 'string') {
+    logs = logs.filter(l => l.document_id === docId || l.resolution_number.includes(docId));
+  }
+
+  const parsedLimit = parseInt(limit as string, 10) || 50;
+  res.json({
+    success: true,
+    totalLogs: logs.length,
+    logs: logs.slice(0, parsedLimit),
+  });
 });
 
 // -------------------------------------------------------------
