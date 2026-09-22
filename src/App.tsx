@@ -11,7 +11,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'search' | 'upload'>('search');
   const [documents, setDocuments] = useState<LegislativeDocument[]>(SEED_LEGISLATIVE_DOCUMENTS);
   const [selectedResultItem, setSelectedResultItem] = useState<SearchResultItem | null>(null);
-  const [modalInitialTab, setModalInitialTab] = useState<'record' | 'print' | 'edit'>('record');
+  const [modalInitialTab, setModalInitialTab] = useState<'pdf' | 'download' | 'record' | 'print' | 'edit'>('pdf');
   const [isFormatGuideOpen, setIsFormatGuideOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -82,7 +82,7 @@ export default function App() {
             documents={documents}
             onSelectDocument={(item) => {
               setSelectedResultItem(item);
-              setModalInitialTab('record');
+              setModalInitialTab('pdf');
             }}
             onOpenFormatGuide={() => setIsFormatGuideOpen(true)}
             onSwitchToUpload={() => setActiveTab('upload')}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Search, SlidersHorizontal, ArrowUpDown, Filter, Sparkles, AlertCircle, 
+  Search, SlidersHorizontal, ArrowUpDown, Filter, AlertCircle, 
   CheckCircle2, FileText, Calendar, User, Tag, ExternalLink, Zap, 
   BookOpen, ChevronRight, X, Layers, ShieldCheck, Trash2, Printer
 } from 'lucide-react';
@@ -40,15 +40,6 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
     { label: 'A RESOLUTION FAVORABLY ENDORSING...', value: 'A RESOLUTION FAVORABLY ENDORSING' },
     { label: 'AN ORDINANCE REGULATING...', value: 'AN ORDINANCE REGULATING' },
     { label: 'AN ORDINANCE ENACTING...', value: 'AN ORDINANCE ENACTING' },
-  ];
-
-  // Quick Preset Queries to easily test the system
-  const PRESET_QUERIES = [
-    { label: 'Exact Series: 2026-045', query: '2026-045', desc: 'Triggers Priority 1 Series Match (100%)' },
-    { label: 'Quoted: "Health Services"', query: '"Health Services"', desc: 'Triggers Priority 1 Title Phrase Match' },
-    { label: 'Boolean: Health AND Agreement', query: 'Health AND Agreement', desc: 'Triggers Priority 2 Boolean AND Match' },
-    { label: 'Word Order: Disaster Risk Reduction', query: 'Disaster Risk Reduction', desc: 'Triggers Priority 2 Monotonic Title Sequence' },
-    { label: 'Fuzzy / Typo: Heatlh Servces', query: 'Heatlh Servces', desc: 'Triggers Priority 3 pg_trgm Trigram Match' },
   ];
 
   // Execute Ranking Engine
@@ -155,24 +146,6 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
             >
               Search
             </button>
-          </div>
-
-          {/* Quick Syntax Presets */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs pt-1">
-            <span className="text-slate-500 font-medium mr-1 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-amber-500" />
-              Quick Filters:
-            </span>
-            {PRESET_QUERIES.map((preset, idx) => (
-              <button
-                key={idx}
-                onClick={() => setSearchQuery(preset.query)}
-                className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 hover:border-blue-300 transition-all cursor-pointer text-[11px]"
-                title={preset.desc}
-              >
-                {preset.label}
-              </button>
-            ))}
           </div>
         </div>
 
@@ -319,21 +292,23 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
                         {highlightMatches(doc.resolution_number, searchQuery)}
                       </span>
 
-                      {/* Priority Ranking Pill */}
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                          item.priority === 1
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                            : item.priority === 2
-                            ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                            : item.priority === 3
-                            ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                            : 'bg-purple-100 text-purple-800 border border-purple-300'
-                        }`}
-                      >
-                        {item.priority === 1 && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
-                        {item.priorityLabel} ({item.score}%)
-                      </span>
+                      {/* Priority Ranking Pill (Hidden in Catalog View) */}
+                      {!item.priorityLabel.includes('Catalog View') && (
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                            item.priority === 1
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              : item.priority === 2
+                              ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                              : item.priority === 3
+                              ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                              : 'bg-purple-100 text-purple-800 border border-purple-300'
+                          }`}
+                        >
+                          {item.priority === 1 && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+                          {item.priorityLabel} ({item.score}%)
+                        </span>
+                      )}
 
                       <span className="text-xs text-slate-400">•</span>
                       <span className="text-xs text-slate-500 font-medium">
@@ -346,17 +321,19 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
                       {highlightMatches(doc.resolution_title, searchQuery)}
                     </h3>
 
-                    {/* Matched Criteria Pills */}
-                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                      {item.matchedCriteria.map((crit, cIdx) => (
-                        <span
-                          key={cIdx}
-                          className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-medium border border-slate-200"
-                        >
-                          ✓ {crit}
-                        </span>
-                      ))}
-                    </div>
+                    {/* Matched Criteria Pills (Hidden in Catalog View) */}
+                    {!item.priorityLabel.includes('Catalog View') && item.matchedCriteria.filter(c => c !== 'Catalog Listing').length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        {item.matchedCriteria.filter(c => c !== 'Catalog Listing').map((crit, cIdx) => (
+                          <span
+                            key={cIdx}
+                            className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-medium border border-slate-200"
+                          >
+                            ✓ {crit}
+                          </span>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Full-Text snippet if applicable */}
                     {item.bodyMatchSnippet && (

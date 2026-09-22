@@ -21,14 +21,9 @@ export const Header: React.FC<HeaderProps> = ({
             <FileText className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold tracking-tight text-white font-sans">
-                Legislative Information System <span className="text-blue-400 font-semibold">(LIS)</span>
-              </h1>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-blue-900/60 text-blue-300 border border-blue-700/50">
-                Official Archive
-              </span>
-            </div>
+            <h1 className="text-xl font-bold tracking-tight text-white font-sans">
+              Legislative Information System <span className="text-blue-400 font-semibold">(LIS)</span>
+            </h1>
             <p className="text-xs text-slate-300 font-medium">
               Municipality of Mutia, Zamboanga del Norte
             </p>

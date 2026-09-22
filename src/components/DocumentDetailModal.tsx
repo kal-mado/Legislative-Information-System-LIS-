@@ -3,7 +3,7 @@ import {
   X, FileText, Calendar, User, Tag, CheckCircle2, Shield, Copy, Check, 
   Trash2, Printer, Edit3, Save, RotateCcw, AlertCircle, Wand2, Building2,
   Share2, ArrowRight, RefreshCw, HardDrive, Stamp, Hash, CheckSquare,
-  Layers, ExternalLink, QrCode, Sliders
+  Layers, ExternalLink, QrCode, Sliders, Download, FileDown, Eye, ZoomIn, ZoomOut
 } from 'lucide-react';
 import { LegislativeDocument, SearchResultItem, PrintLogEntry, PrinterDevice, PaperSize, WatermarkType } from '../types';
 import { normalizeTitle, validateAndParseTitle } from '../utils/titleEngine';
@@ -13,12 +13,13 @@ import {
   generateSecurityHash, 
   canApplyWatermark 
 } from '../utils/printerService';
+import { downloadResolutionPdf, downloadResolutionText } from '../utils/pdfGenerator';
 import { PrinterSelectionModal } from './PrinterSelectionModal';
 import { PrintAuditModal } from './PrintAuditModal';
 
 interface DocumentDetailModalProps {
   item: SearchResultItem | null;
-  initialTab?: 'record' | 'print' | 'edit';
+  initialTab?: 'pdf' | 'download' | 'record' | 'print' | 'edit';
   onClose: () => void;
   onDeleteDocument?: (id: string) => void;
   onUpdateDocument?: (updatedDoc: LegislativeDocument) => void;
@@ -26,13 +27,18 @@ interface DocumentDetailModalProps {
 
 export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({ 
   item, 
-  initialTab = 'record',
+  initialTab = 'pdf',
   onClose, 
   onDeleteDocument,
   onUpdateDocument,
 }) => {
-  const [activeTab, setActiveTab] = useState<'record' | 'print' | 'edit'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'pdf' | 'download' | 'record' | 'print' | 'edit'>(initialTab);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  // PDF Viewer & Download State
+  const [pdfViewMode, setPdfViewMode] = useState<'pdf_layout' | 'full_text'>('pdf_layout');
+  const [pdfZoom, setPdfZoom] = useState<number>(100);
+  const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
 
   // Local document state (allows instant updates when edited)
   const [currentDoc, setCurrentDoc] = useState<LegislativeDocument | null>(null);
@@ -124,7 +130,7 @@ export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
       setEditForm({ ...item.document });
       setSaveMessage(null);
       setSaveError(null);
-      setActiveTab(initialTab || 'record');
+      setActiveTab(initialTab || 'pdf');
     }
   }, [item, initialTab]);
 
@@ -134,6 +140,46 @@ export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
     navigator.clipboard.writeText(text);
     setCopiedField(fieldId);
     setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleDownloadPdf = () => {
+    if (!currentDoc) return;
+    try {
+      downloadResolutionPdf(currentDoc);
+      setDownloadSuccess(`Downloaded official legal PDF for ${currentDoc.resolution_number}`);
+      setTimeout(() => setDownloadSuccess(null), 4000);
+    } catch (err) {
+      console.error('PDF download error:', err);
+    }
+  };
+
+  const handleDownloadText = () => {
+    if (!currentDoc) return;
+    try {
+      downloadResolutionText(currentDoc);
+      setDownloadSuccess(`Downloaded text transcript for ${currentDoc.resolution_number}`);
+      setTimeout(() => setDownloadSuccess(null), 4000);
+    } catch (err) {
+      console.error('Text download error:', err);
+    }
+  };
+
+  const handleDownloadJson = () => {
+    if (!currentDoc) return;
+    try {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentDoc, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      const cleanNum = currentDoc.resolution_number.replace(/[^a-zA-Z0-9-_]/g, '_');
+      a.download = `${cleanNum}_record.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setDownloadSuccess(`Downloaded JSON record for ${currentDoc.resolution_number}`);
+      setTimeout(() => setDownloadSuccess(null), 4000);
+    } catch (err) {
+      console.error('JSON download error:', err);
+    }
   };
 
   // Title validation for edit form
@@ -343,11 +389,42 @@ export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
           </button>
         </div>
 
-        {/* Tab Navigation: Record, Print Resolution, Edit Resolution */}
-        <div className="bg-slate-100 px-4 pt-2 border-b border-slate-200 flex items-center gap-2 text-xs sm:text-sm">
+        {/* Tab Navigation: PDF & Full Resolution, Download File, Record, Print Resolution, Edit Resolution */}
+        <div className="bg-slate-100 px-4 pt-2 border-b border-slate-200 flex items-center gap-2 text-xs sm:text-sm overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('pdf')}
+            className={`px-3.5 py-2 font-medium border-b-2 transition-all cursor-pointer flex-shrink-0 ${
+              activeTab === 'pdf'
+                ? 'border-rose-600 text-rose-700 bg-white rounded-t-lg font-bold shadow-xs'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <span className="flex items-center gap-1.5">
+              <FileDown className="w-4 h-4 text-rose-600" />
+              <span>PDF & Full Resolution</span>
+              <span className="text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                PDF
+              </span>
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('download')}
+            className={`px-3.5 py-2 font-medium border-b-2 transition-all cursor-pointer flex-shrink-0 ${
+              activeTab === 'download'
+                ? 'border-blue-600 text-blue-700 bg-white rounded-t-lg font-bold shadow-xs'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <span className="flex items-center gap-1.5">
+              <Download className="w-4 h-4 text-blue-600" />
+              <span>Download File</span>
+            </span>
+          </button>
+
           <button
             onClick={() => setActiveTab('record')}
-            className={`px-3.5 py-2 font-medium border-b-2 transition-all cursor-pointer ${
+            className={`px-3.5 py-2 font-medium border-b-2 transition-all cursor-pointer flex-shrink-0 ${
               activeTab === 'record'
                 ? 'border-blue-600 text-blue-600 bg-white rounded-t-lg font-semibold'
                 : 'border-transparent text-slate-600 hover:text-slate-900'
@@ -355,41 +432,489 @@ export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
           >
             <span className="flex items-center gap-1.5">
               <FileText className="w-4 h-4" />
-              Document Record
+              <span>Document Record</span>
             </span>
           </button>
 
           <button
             onClick={() => setActiveTab('print')}
-            className={`px-3.5 py-2 font-medium border-b-2 transition-all cursor-pointer ${
+            className={`px-3.5 py-2 font-medium border-b-2 transition-all cursor-pointer flex-shrink-0 ${
               activeTab === 'print'
-                ? 'border-blue-600 text-blue-600 bg-white rounded-t-lg font-semibold'
+                ? 'border-emerald-600 text-emerald-700 bg-white rounded-t-lg font-semibold'
                 : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             <span className="flex items-center gap-1.5">
               <Printer className="w-4 h-4 text-emerald-600" />
-              Print Resolution
+              <span>Print Resolution</span>
             </span>
           </button>
 
           <button
             onClick={() => setActiveTab('edit')}
-            className={`px-3.5 py-2 font-medium border-b-2 transition-all cursor-pointer ${
+            className={`px-3.5 py-2 font-medium border-b-2 transition-all cursor-pointer flex-shrink-0 ${
               activeTab === 'edit'
-                ? 'border-blue-600 text-blue-600 bg-white rounded-t-lg font-semibold'
+                ? 'border-indigo-600 text-indigo-700 bg-white rounded-t-lg font-semibold'
                 : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             <span className="flex items-center gap-1.5">
               <Edit3 className="w-4 h-4 text-indigo-600" />
-              Edit Resolution
+              <span>Edit Resolution</span>
             </span>
           </button>
         </div>
 
         {/* Tab Content */}
         <div className="p-5 overflow-y-auto flex-1 text-sm bg-slate-50/50">
+          
+          {/* TAB: PDF & FULL RESOLUTION */}
+          {activeTab === 'pdf' && (
+            <div className="space-y-4">
+              {/* Download success banner */}
+              {downloadSuccess && (
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-xs animate-in fade-in">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span>{downloadSuccess}</span>
+                  </div>
+                  <button
+                    onClick={() => setDownloadSuccess(null)}
+                    className="text-emerald-700 hover:text-emerald-900 text-xs font-bold underline cursor-pointer"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
+
+              {/* Top Action & Conversion Info Bar */}
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+                {/* File & Conversion Status */}
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 font-bold border border-rose-200">
+                    <FileDown className="w-3.5 h-3.5 text-rose-600" />
+                    <span>Converted to PDF</span>
+                  </span>
+
+                  <span className="text-slate-500 font-medium">
+                    Uploaded File: <strong className="font-mono text-slate-800">{currentDoc.file_name}</strong>
+                  </span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-500">
+                    Size: <span className="font-mono text-slate-700">{currentDoc.file_size_kb.toLocaleString()} KB</span>
+                  </span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-500">
+                    Format: <span className="text-slate-700 font-medium">Legal (8.5" × 14")</span>
+                  </span>
+                </div>
+
+                {/* Action Buttons: Download PDF, Download Text, View Mode Switcher */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Dedicated Download PDF Button */}
+                  <button
+                    type="button"
+                    onClick={handleDownloadPdf}
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all cursor-pointer"
+                    title="Download the converted resolution as an official PDF file"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download PDF</span>
+                  </button>
+
+                  {/* Download Text Button */}
+                  <button
+                    type="button"
+                    onClick={handleDownloadText}
+                    className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1.5 border border-slate-300 transition-all cursor-pointer"
+                    title="Download plain text resolution transcription"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-slate-600" />
+                    <span>Download Text</span>
+                  </button>
+
+                  {/* Mode Switcher */}
+                  <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setPdfViewMode('pdf_layout')}
+                      className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                        pdfViewMode === 'pdf_layout'
+                          ? 'bg-white text-blue-700 font-bold shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>PDF Document View</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPdfViewMode('full_text')}
+                      className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                        pdfViewMode === 'full_text'
+                          ? 'bg-white text-indigo-700 font-bold shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>Full Resolution Text</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* PDF Viewer Layout */}
+              {pdfViewMode === 'pdf_layout' ? (
+                <div className="bg-slate-900 rounded-2xl p-4 sm:p-8 flex flex-col items-center overflow-x-auto shadow-inner relative">
+                  {/* PDF Reader Floating Toolbar */}
+                  <div className="sticky top-2 z-20 mb-6 bg-slate-800/95 backdrop-blur-md text-white px-4 py-2 rounded-xl border border-slate-700 shadow-xl flex items-center gap-3 text-xs">
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setPdfZoom(z => Math.max(70, z - 10))}
+                        className="p-1 rounded hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer"
+                        title="Zoom out"
+                      >
+                        <ZoomOut className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="font-mono text-[11px] px-1 text-slate-300 min-w-[42px] text-center font-bold">
+                        {pdfZoom}%
+                      </span>
+                      <button
+                        onClick={() => setPdfZoom(z => Math.min(130, z + 10))}
+                        className="p-1 rounded hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer"
+                        title="Zoom in"
+                      >
+                        <ZoomIn className="w-3.5 h-3.5" />
+                      </button>
+                      {pdfZoom !== 100 && (
+                        <button
+                          onClick={() => setPdfZoom(100)}
+                          className="text-[10px] text-blue-400 hover:text-blue-300 underline ml-1 cursor-pointer"
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="h-4 w-px bg-slate-700"></div>
+
+                    <span className="text-slate-300 text-[11px] flex items-center gap-1 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+                      Official Document • Converted PDF
+                    </span>
+
+                    <div className="h-4 w-px bg-slate-700"></div>
+
+                    <button
+                      onClick={handleDownloadPdf}
+                      className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <Download className="w-3 h-3" />
+                      <span>Download PDF</span>
+                    </button>
+                  </div>
+
+                  {/* Converted PDF Page Canvas */}
+                  <div 
+                    className="bg-white text-slate-900 shadow-2xl rounded-sm p-8 sm:p-14 font-serif border border-slate-300 transition-all duration-150 relative max-w-[780px] w-full"
+                    style={{ transform: `scale(${pdfZoom / 100})`, transformOrigin: 'top center' }}
+                  >
+                    {/* Official Letterhead */}
+                    <div className="text-center pb-5 border-b-2 border-slate-900 space-y-1">
+                      <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-800 mb-1.5 shadow-xs">
+                        <Building2 className="w-6 h-6 text-slate-800" />
+                      </div>
+                      <p className="text-xs font-sans tracking-widest uppercase font-semibold text-slate-700">
+                        Republic of the Philippines
+                      </p>
+                      <p className="text-xs font-sans tracking-wider uppercase font-medium text-slate-700">
+                        Province of Zamboanga del Norte
+                      </p>
+                      <h3 className="text-base font-sans tracking-wide uppercase font-extrabold text-slate-950">
+                        Municipality of Mutia
+                      </h3>
+                      <p className="text-xs font-sans tracking-widest uppercase font-bold text-blue-900 pt-0.5">
+                        Office of the Sangguniang Bayan
+                      </p>
+                    </div>
+
+                    {/* Legislative Body & Minutes Excerpt */}
+                    <div className="pt-5 pb-3 text-xs font-sans text-slate-600 italic space-y-1">
+                      <p>
+                        EXCERPTS FROM THE MINUTES OF THE REGULAR SESSION OF THE SANGGUNIANG BAYAN OF MUTIA, ZAMBOANGA DEL NORTE HELD AT THE LEGISLATIVE SESSION HALL.
+                      </p>
+                      {currentDoc.author_sponsors && currentDoc.author_sponsors.length > 0 && (
+                        <p className="font-semibold text-slate-700 not-italic pt-1 font-sans">
+                          Authored & Sponsored by: <span className="text-slate-900">{currentDoc.author_sponsors.join(', ')}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Resolution Number Banner */}
+                    <div className="my-4 py-2 px-4 rounded bg-slate-100 border border-slate-300 text-center">
+                      <h4 className="font-sans font-extrabold text-base tracking-wider text-slate-950 uppercase">
+                        {currentDoc.resolution_number}
+                      </h4>
+                    </div>
+
+                    {/* Full Resolution Title */}
+                    <div className="py-2 text-center">
+                      <h2 className="font-serif font-bold text-sm sm:text-base text-slate-950 uppercase leading-snug tracking-wide">
+                        {currentDoc.subject_title || currentDoc.resolution_title}
+                      </h2>
+                    </div>
+
+                    <hr className="my-4 border-slate-300" />
+
+                    {/* Full Resolution Text & Clauses */}
+                    <div className="space-y-4 text-xs sm:text-sm leading-relaxed text-justify text-slate-800">
+                      {currentDoc.ocr_fulltext ? (
+                        currentDoc.ocr_fulltext
+                          .split('\n')
+                          .map(line => line.trim())
+                          .filter(line => line.length > 0)
+                          .map((paragraph, idx) => {
+                            const isKeyword = paragraph.startsWith('WHEREAS') || 
+                                              paragraph.startsWith('NOW THEREFORE') || 
+                                              paragraph.startsWith('RESOLVED') ||
+                                              paragraph.startsWith('BE IT RESOLVED') ||
+                                              paragraph.startsWith('APPROVED');
+                            return (
+                              <p key={idx} className={isKeyword ? 'font-serif font-semibold indent-6 text-slate-950' : 'indent-6'}>
+                                {paragraph}
+                              </p>
+                            );
+                          })
+                      ) : (
+                        <>
+                          <p className="font-semibold indent-6 text-slate-950">
+                            WHEREAS, Section 16 of Republic Act No. 7160, otherwise known as the Local Government Code of 1991, provides that local government units shall exercise powers necessary and appropriate to ensure and promote the general welfare of their inhabitants;
+                          </p>
+                          <p className="font-semibold indent-6 text-slate-950">
+                            WHEREAS, the Sangguniang Bayan of Mutia, upon thorough review and favorable recommendation of the committee, deemed it advantageous and necessary to enact this measure;
+                          </p>
+                          <p className="font-semibold indent-6 text-slate-950">
+                            NOW THEREFORE, on motion of the sponsoring members, duly seconded by all members present:
+                          </p>
+                          <p className="font-bold indent-6 text-slate-950">
+                            BE IT RESOLVED, AS IT IS HEREBY RESOLVED, by the Sangguniang Bayan of Mutia in session assembled, to approve and enact: {currentDoc.subject_title}.
+                          </p>
+                        </>
+                      )}
+
+                      <p className="italic text-xs text-slate-600 pt-2">
+                        UNANIMOUSLY APPROVED this {currentDoc.date_approved || currentDoc.date_passed || 'recent session'}.
+                      </p>
+                    </div>
+
+                    {/* Official Signatures & Attestation */}
+                    <div className="pt-10 grid grid-cols-2 gap-8 text-xs font-sans">
+                      <div>
+                        <p className="text-slate-500 font-semibold mb-6">ATTESTED AND CERTIFIED CORRECT:</p>
+                        <p className="font-bold text-slate-950 uppercase border-b border-slate-400 pb-1">
+                          ATTY. ROBERTO V. MENDOZA
+                        </p>
+                        <p className="text-slate-600 text-[11px] pt-1">Secretary to the Sangguniang Bayan</p>
+                      </div>
+
+                      <div>
+                        <p className="text-slate-500 font-semibold mb-6">APPROVED AND CONCURRED:</p>
+                        <p className="font-bold text-slate-950 uppercase border-b border-slate-400 pb-1">
+                          HON. MARIA ELENA SANTOS
+                        </p>
+                        <p className="text-slate-600 text-[11px] pt-1">Municipal Vice Mayor & Presiding Officer</p>
+                      </div>
+                    </div>
+
+                    {/* Official Verification Seal & QR Footnote */}
+                    <div className="mt-8 pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-sans">
+                      <div className="flex items-center gap-2">
+                        <QrCode className="w-6 h-6 text-slate-400" />
+                        <div>
+                          <p className="font-bold text-slate-700">Official Municipal Legislative Record</p>
+                          <p className="font-mono">Security Hash: {currentDoc.id.slice(0, 16)} • Verified True Copy</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p>Digitized via Legislative Information System (LIS)</p>
+                        <p>Municipality of Mutia, Zamboanga del Norte</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Full Resolution Text / OCR Mode */
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-sm">Full Resolution Verbatim Transcription</h3>
+                      <p className="text-xs text-slate-500">Digitized text content extracted from uploaded document</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleCopy(currentDoc.ocr_fulltext || currentDoc.resolution_title, 'full-text')}
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer border border-slate-300"
+                      >
+                        {copiedField === 'full-text' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                        <span>{copiedField === 'full-text' ? 'Copied Full Text' : 'Copy All Text'}</span>
+                      </button>
+
+                      <button
+                        onClick={handleDownloadText}
+                        className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer border border-blue-200"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download .txt</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs text-slate-800 leading-relaxed whitespace-pre-wrap max-h-[600px] overflow-y-auto">
+                    {currentDoc.ocr_fulltext || 'No full OCR body text recorded.'}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB: DOWNLOAD FILE */}
+          {activeTab === 'download' && (
+            <div className="space-y-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+              {/* Banner */}
+              <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 flex items-start gap-3">
+                <FileDown className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-bold text-sm text-blue-950">Download Resolution Files</h3>
+                  <p className="text-xs text-blue-800 mt-0.5">
+                    Select your preferred format to export or download <strong>{currentDoc.resolution_number}</strong>. All files are generated with certified municipal metadata and verbatim legal text.
+                  </p>
+                </div>
+              </div>
+
+              {/* Download success banner */}
+              {downloadSuccess && (
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-xs animate-in fade-in">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span>{downloadSuccess}</span>
+                  </div>
+                  <button
+                    onClick={() => setDownloadSuccess(null)}
+                    className="text-emerald-700 hover:text-emerald-900 text-xs font-bold underline cursor-pointer"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
+
+              {/* Export Options Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 1. Official PDF Document */}
+                <div className="p-5 rounded-xl border border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/20 transition-all flex flex-col justify-between space-y-4 group">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="p-2 rounded-lg bg-rose-100 text-rose-700 font-bold text-xs flex items-center gap-1.5">
+                        <FileDown className="w-4 h-4 text-rose-600" />
+                        <span>Official PDF Document</span>
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-500">.pdf</span>
+                    </div>
+                    <h4 className="font-bold text-slate-900 text-sm">Converted Official Resolution PDF</h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Publication-grade Philippine legal format (8.5" × 14") with municipal letterhead, official seals, whereas clauses, and signature certification.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleDownloadPdf}
+                    className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download PDF Document</span>
+                  </button>
+                </div>
+
+                {/* 2. Plain Text Verbatim Transcript */}
+                <div className="p-5 rounded-xl border border-slate-200 hover:border-slate-400 bg-slate-50/50 hover:bg-slate-100/50 transition-all flex flex-col justify-between space-y-4 group">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="p-2 rounded-lg bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1.5">
+                        <FileText className="w-4 h-4 text-slate-600" />
+                        <span>Plain Text Archive</span>
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-500">.txt</span>
+                    </div>
+                    <h4 className="font-bold text-slate-900 text-sm">Verbatim Full-Text Transcript</h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Clean UTF-8 plain text transcription containing complete minutes excerpts, legislative preamble, and operative clauses.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleDownloadText}
+                    className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download Plain Text</span>
+                  </button>
+                </div>
+
+                {/* 3. JSON Archival Record */}
+                <div className="p-5 rounded-xl border border-slate-200 hover:border-indigo-400 bg-slate-50/50 hover:bg-indigo-50/20 transition-all flex flex-col justify-between space-y-4 group">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="p-2 rounded-lg bg-indigo-100 text-indigo-800 font-bold text-xs flex items-center gap-1.5">
+                        <Hash className="w-4 h-4 text-indigo-600" />
+                        <span>Digital Metadata</span>
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-500">.json</span>
+                    </div>
+                    <h4 className="font-bold text-slate-900 text-sm">Legislative Schema Record</h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Machine-readable JSON schema export with full normalized title indexes, classification status, sponsors, and audit timestamps.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleDownloadJson}
+                    className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download JSON Record</span>
+                  </button>
+                </div>
+
+                {/* 4. Network Print & Municipal Spooler */}
+                <div className="p-5 rounded-xl border border-slate-200 hover:border-emerald-400 bg-slate-50/50 hover:bg-emerald-50/20 transition-all flex flex-col justify-between space-y-4 group">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="p-2 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center gap-1.5">
+                        <Printer className="w-4 h-4 text-emerald-600" />
+                        <span>Print Spooler</span>
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-500">Physical Print</span>
+                    </div>
+                    <h4 className="font-bold text-slate-900 text-sm">Send to Municipal Printer</h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Send directly to Sangguniang Bayan network laser printers with watermarking, line numbering, and audit trail logging.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('print')}
+                    className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>Open Print Spooler</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* TAB 1: DOCUMENT RECORD */}
           {activeTab === 'record' && (
