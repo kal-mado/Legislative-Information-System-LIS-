@@ -436,7 +436,7 @@ export const ArchitectureHub: React.FC = () => {
                     </div>
                     <div className="flex justify-end pt-1">
                       <span className="bg-emerald-600 text-white px-3 py-1 rounded font-bold">
-                        [Save & Index to Database]
+                        [Save]
                       </span>
                     </div>
                   </div>
