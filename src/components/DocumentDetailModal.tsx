@@ -1886,13 +1886,6 @@ export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
               </p>
             </div>
 
-            <div className="p-3 bg-rose-50/70 border border-rose-200/80 rounded-xl text-xs text-rose-700 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
-              <p className="text-[11px] leading-relaxed">
-                This action cannot be undone. All digitized text, indexed criteria, and metadata associated with this resolution will be permanently removed.
-              </p>
-            </div>
-
             <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
               <button
                 type="button"

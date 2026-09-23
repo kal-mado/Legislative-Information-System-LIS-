@@ -14,8 +14,8 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-30 shadow-md">
       {/* Top Municipal Banner Header */}
-      <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-black border-b border-blue-950/80 text-white py-3 sm:py-4 px-4 shadow-sm relative overflow-hidden">
-        <div className="max-w-7xl mx-auto flex items-center justify-center text-center">
+      <div className="bg-slate-900 border-b border-slate-800 text-white py-3 sm:py-4 px-4 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto flex items-center justify-center text-center bg-slate-900">
           <h2 
             className="text-lg sm:text-2xl md:text-3xl font-extrabold tracking-[0.16em] sm:tracking-[0.22em] uppercase text-white font-cinzel drop-shadow-md select-none"
             style={{ fontFamily: "'Cinzel', Georgia, serif" }}
