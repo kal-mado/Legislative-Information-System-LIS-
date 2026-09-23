@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+.font-cinzel {
+  font-family: 'Cinzel', Georgia, serif;
+}
+
 @media print {
   html, body {
     height: auto !important;
