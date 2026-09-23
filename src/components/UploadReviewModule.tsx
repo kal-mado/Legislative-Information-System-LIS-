@@ -299,14 +299,6 @@ export const UploadReviewModule: React.FC<UploadReviewModuleProps> = ({
               Drag-and-drop batch upload supporting PDF, DOCX, PNG, and JPG. Digitizes document headers and verifies resolution metadata before saving to the archive.
             </p>
           </div>
-
-          <button
-            onClick={onOpenFormatGuide}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer self-start md:self-auto"
-          >
-            <Info className="w-4 h-4 text-blue-600" />
-            Syntax Requirements
-          </button>
         </div>
 
         {/* Quick Test Samples */}

@@ -1154,18 +1154,6 @@ export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => handleCopy(
-                          `${currentDoc.resolution_number}\n${currentDoc.resolution_title}\n\n${currentDoc.ocr_fulltext || currentDoc.subject_title}`,
-                          'print-text'
-                        )}
-                        className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        {copiedField === 'print-text' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
-                        <span>{copiedField === 'print-text' ? 'Copied' : 'Copy Text'}</span>
-                      </button>
-
-                      <button
-                        type="button"
                         onClick={() => handlePrintAllPages(true)}
                         disabled={isSpooling}
                         className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-900/30 transition-all cursor-pointer disabled:opacity-50"
