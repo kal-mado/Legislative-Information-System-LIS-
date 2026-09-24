@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Search, SlidersHorizontal, ArrowUpDown, Filter, AlertCircle, 
   CheckCircle2, FileText, Calendar, User, Tag, ExternalLink, Zap, 
-  BookOpen, ChevronRight, X, Layers, ShieldCheck, Trash2, Printer, AlertTriangle
+  BookOpen, ChevronRight, X, Layers, ShieldCheck, Trash2, Printer, AlertTriangle, Eye
 } from 'lucide-react';
 import { LegislativeDocument, SearchPriority, SearchResultItem, SearchQueryFilters } from '../types';
 import { rankDocumentForQuery } from '../utils/titleEngine';
@@ -45,7 +45,11 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
 
   // Execute Ranking Engine
   const searchResults = useMemo(() => {
-    let pool = documents;
+    let pool = documents.filter(
+      d => d.file_name !== 'ord-2025-018-traffic-code.pdf' && 
+           !d.file_name?.includes('traffic-code') &&
+           d.id !== 'a1b2c3d4-e5f6-7a8b-9c0d-555555555555'
+    );
 
     // Filter by Type
     if (selectedDocType !== 'ALL') {
@@ -357,37 +361,10 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {onDeleteDocument && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDocToDelete(doc);
-                          }}
-                          className="px-2 py-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors flex items-center gap-1 text-xs cursor-pointer"
-                          title="Remove resolution"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Remove</span>
-                        </button>
-                      )}
-                      {onSwitchToPrint && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSwitchToPrint(doc);
-                          }}
-                          className="px-2.5 py-1 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors flex items-center gap-1 text-xs font-semibold cursor-pointer"
-                          title="Configure & Print Resolution"
-                        >
-                          <Printer className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Print</span>
-                        </button>
-                      )}
-                      <div className="flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:text-blue-800">
-                        <span>Inspect Record</span>
-                        <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                      <div className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 group-hover:bg-blue-600 group-hover:text-white border border-blue-200 group-hover:border-blue-600 transition-all flex items-center gap-1.5">
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>View Resolution</span>
+                        <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
                   </div>
@@ -395,13 +372,22 @@ export const PrecisionSearchModule: React.FC<PrecisionSearchModuleProps> = ({
 
                 {/* Footer Metadata Row */}
                 <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-                  <div className="flex items-center gap-2">
-                    <User className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="font-medium text-slate-700 truncate max-w-[280px]">
-                      {doc.author_sponsors.slice(0, 2).join(', ')}
-                      {doc.author_sponsors.length > 2 && ` +${doc.author_sponsors.length - 2} more`}
-                    </span>
-                  </div>
+                  {(() => {
+                    const filteredSponsors = doc.author_sponsors.filter(
+                      s => !s.toLowerCase().includes('maria elena santos') && 
+                           !s.toLowerCase().includes('antonio valenzuela')
+                    );
+                    if (filteredSponsors.length === 0) return <div />;
+                    return (
+                      <div className="flex items-center gap-2">
+                        <User className="w-3.5 h-3.5 text-slate-400" />
+                        <span className="font-medium text-slate-700 truncate max-w-[280px]">
+                          {filteredSponsors.slice(0, 2).join(', ')}
+                          {filteredSponsors.length > 2 && ` +${filteredSponsors.length - 2} more`}
+                        </span>
+                      </div>
+                    );
+                  })()}
 
                   <div className="flex items-center gap-1.5">
                     {doc.keywords.slice(0, 3).map((kw, kIdx) => (

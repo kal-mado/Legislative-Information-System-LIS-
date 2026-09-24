@@ -15,18 +15,18 @@ export const SEED_LEGISLATIVE_DOCUMENTS: LegislativeDocument[] = [
     keywords: ['Health Services', 'Memorandum of Agreement', 'Local Chief Executive', 'Public Health', 'Healthcare Facility', 'Rural Health Unit'],
     date_passed: '2026-03-14',
     date_approved: '2026-03-18',
-    author_sponsors: ['Hon. Maria Elena Santos', 'Hon. Arthur Pendelton', 'Committee on Health and Sanitation'],
+    author_sponsors: ['Hon. Arthur Pendelton', 'Committee on Health and Sanitation'],
     file_path: '/storage/legislative/2026/resolutions/res-2026-045-moa-health.pdf',
     file_name: 'res-2026-045-moa-health.pdf',
     file_size_kb: 1420,
     mime_type: 'application/pdf',
     ocr_fulltext: `EXCERPTS FROM THE MINUTES OF THE 12TH REGULAR SESSION OF THE SANGGUNIANG BAYAN HELD AT THE SESSION HALL ON MARCH 14, 2026.
-PRESENT: Hon. Maria Elena Santos (Presiding Officer Pro-Tempore), Hon. Arthur Pendelton (Floor Leader), Hon. Roberto Tan, Hon. Clara Dimaculangan.
+PRESENT: Hon. Roberto Tan (Presiding Officer Pro-Tempore), Hon. Arthur Pendelton (Floor Leader), Hon. Clara Dimaculangan.
 RESOLUTION NO. 2026-045
 A RESOLUTION AUTHORIZING THE LOCAL CHIEF EXECUTIVE TO ENTER INTO A MEMORANDUM OF AGREEMENT FOR HEALTH SERVICES WITH THE DEPARTMENT OF HEALTH (DOH) REGIONAL OFFICE AND DISTRICT HOSPITAL CONSORTIUM.
 WHEREAS, Section 16 of Republic Act No. 7160, otherwise known as the Local Government Code of 1991, mandates every local government unit to ensure and promote general welfare, health, and safety;
 WHEREAS, there is an urgent imperative to augment medical staffing, laboratory diagnostics, and specialized pediatric and maternal services across our three municipal rural health stations;
-NOW THEREFORE, on motion of Hon. Maria Elena Santos, unanimously seconded by all members present:
+NOW THEREFORE, on motion of Hon. Arthur Pendelton, unanimously seconded by all members present:
 RESOLVED, AS IT IS HEREBY RESOLVED, to grant authority to Municipal Mayor to sign and execute the Tripartite Memorandum of Agreement for Health Services.
 APPROVED UNANIMOUSLY this 18th day of March, 2026.`,
     ocr_confidence: 98.4,
@@ -79,7 +79,7 @@ ADOPTED this 2nd day of May 2026.`,
     keywords: ['CSO Accreditation', 'Non-Government Organizations', 'Municipal Development Council', 'Participatory Governance', 'Civil Society'],
     date_passed: '2026-01-20',
     date_approved: '2026-01-22',
-    author_sponsors: ['Hon. Antonio Valenzuela', 'Hon. Maria Elena Santos'],
+    author_sponsors: ['Committee on Rules and Privileges', 'Hon. Roberto Tan'],
     file_path: '/storage/legislative/2026/resolutions/res-2026-012-cso-accreditation.pdf',
     file_name: 'res-2026-012-cso-accreditation.pdf',
     file_size_kb: 980,
@@ -128,36 +128,6 @@ ENACTED this 28th day of February, 2026.`,
     updated_at: '2026-03-01T09:00:00Z',
   },
   {
-    id: 'a1b2c3d4-e5f6-7a8b-9c0d-555555555555',
-    doc_type: 'Ordinance',
-    resolution_number: 'Ordinance No. 2025-018',
-    series_header: 'Ordinance No. 2025-018',
-    series_year: 2025,
-    series_number_only: '2025-018',
-    subject_title: 'AN ORDINANCE ENACTING THE LOCAL TRAFFIC AND TRANSPORTATION CODE PROVIDING RULES FOR PUBLIC VEHICLES AND BICYCLE INFRASTRUCTURE',
-    resolution_title: 'Ordinance No. 2025-018: AN ORDINANCE ENACTING THE LOCAL TRAFFIC AND TRANSPORTATION CODE PROVIDING RULES FOR PUBLIC VEHICLES AND BICYCLE INFRASTRUCTURE',
-    normalized_title: normalizeTitle('Ordinance No. 2025-018: AN ORDINANCE ENACTING THE LOCAL TRAFFIC AND TRANSPORTATION CODE PROVIDING RULES FOR PUBLIC VEHICLES AND BICYCLE INFRASTRUCTURE'),
-    keywords: ['Traffic Code', 'Transportation', 'Public Utility Vehicles', 'Bicycle Lanes', 'Speed Limits', 'Mobility'],
-    date_passed: '2025-11-10',
-    date_approved: '2025-11-25',
-    author_sponsors: ['Hon. Arthur Pendelton', 'Hon. Roberto Tan'],
-    file_path: '/storage/legislative/2025/ordinances/ord-2025-018-traffic-code.pdf',
-    file_name: 'ord-2025-018-traffic-code.pdf',
-    file_size_kb: 4120,
-    mime_type: 'application/pdf',
-    ocr_fulltext: `SANGGUNIANG BAYAN ORDINANCE NO. 2025-018
-AN ORDINANCE ENACTING THE LOCAL TRAFFIC AND TRANSPORTATION CODE PROVIDING RULES FOR PUBLIC VEHICLES AND BICYCLE INFRASTRUCTURE.
-BE IT ORDAINED by authority of the Local Government Code of 1991:
-CHAPTER I. DEFINITION OF TERMS. Active transport corridors, protected bike lanes, speed zones.
-CHAPTER II. ONE-WAY SYSTEM AND VEHICULAR CIRCULATION.
-ENACTED November 25, 2025.`,
-    ocr_confidence: 98.0,
-    classification_status: 'Enacted',
-    committee_referral: 'Committee on Public Utilities, Transportation, and Traffic Management',
-    created_at: '2025-11-26T14:00:00Z',
-    updated_at: '2025-11-26T14:00:00Z',
-  },
-  {
     id: 'a1b2c3d4-e5f6-7a8b-9c0d-666666666666',
     doc_type: 'Resolution',
     resolution_number: 'Resolution No. 2025-089',
@@ -170,7 +140,7 @@ ENACTED November 25, 2025.`,
     keywords: ['Solar Energy', 'Renewable Electrification', 'Public Schools', 'Education Infrastructure', 'DepEd Partnership'],
     date_passed: '2025-09-08',
     date_approved: '2025-09-12',
-    author_sponsors: ['Hon. Maria Elena Santos', 'Hon. Antonio Valenzuela'],
+    author_sponsors: ['Committee on Education and Energy', 'Hon. Clara Dimaculangan'],
     file_path: '/storage/legislative/2025/resolutions/res-2025-089-solar-schools.docx',
     file_name: 'res-2025-089-solar-schools.docx',
     file_size_kb: 870,
@@ -199,7 +169,7 @@ APPROVED September 12, 2025.`,
     keywords: ['Procurement', 'Essential Medicines', 'Rural Health Units', 'Emergency Modality', 'Healthcare Supplies', 'Health Services'],
     date_passed: '2026-04-10',
     date_approved: '2026-04-12',
-    author_sponsors: ['Hon. Maria Elena Santos'],
+    author_sponsors: ['Committee on Health and Finance', 'Hon. Arthur Pendelton'],
     file_path: '/storage/legislative/2026/resolutions/res-2026-077-medicines.pdf',
     file_name: 'res-2026-077-medicines.pdf',
     file_size_kb: 1650,
@@ -230,9 +200,8 @@ OFFICE OF THE SANGGUNIANG BAYAN
 EXCERPTS FROM THE MINUTES OF THE 14TH REGULAR SESSION OF THE SANGGUNIANG BAYAN HELD AT THE LEGISLATIVE SESSION HALL ON MARCH 14, 2026.
 
 PRESENT:
-Hon. Maria Elena Santos .......... Presiding Officer Pro-Tempore
+Hon. Roberto Tan ................. Presiding Officer Pro-Tempore
 Hon. Arthur Pendelton ............ Majority Floor Leader
-Hon. Roberto Tan ................. Sanggunian Member
 Hon. Clara Dimaculangan .......... Sanggunian Member
 
 RESOLUTION NO. 2026-045
@@ -242,13 +211,13 @@ A RESOLUTION AUTHORIZING THE LOCAL CHIEF EXECUTIVE TO ENTER INTO A MEMORANDUM OF
 WHEREAS, Section 17 of the Local Government Code of 1991 mandates devolution of basic medical services to local government units;
 WHEREAS, the municipal health center requires satellite telemedicine facilities and sub-specialty clinics for low-income barangay constituents;
 
-NOW, THEREFORE, on motion of Hon. Maria Elena Santos, seconded by Hon. Arthur Pendelton:
+NOW, THEREFORE, on motion of Hon. Arthur Pendelton, seconded by Hon. Roberto Tan:
 
 RESOLVED, by the Sangguniang Bayan, to grant full authority to the Local Chief Executive to execute the Memorandum of Agreement.
 
 Approved this 18th day of March, 2026.
 
-AUTHORS: Hon. Maria Elena Santos, Hon. Arthur Pendelton`,
+AUTHORS: Hon. Arthur Pendelton, Hon. Roberto Tan`,
   },
   {
     title: 'Resolution No. 2026-104 (Disaster Risk Reduction)',

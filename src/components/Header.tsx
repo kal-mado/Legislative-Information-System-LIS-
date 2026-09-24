@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, UploadCloud, FileText } from 'lucide-react';
+import { Search, UploadCloud } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'search' | 'upload';
@@ -29,18 +29,13 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="bg-slate-900 border-b border-slate-800 text-white shadow-[0_8px_24px_-4px_rgba(0,0,0,0.45)] relative z-10">
         <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Brand & Identity */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-lg border border-blue-400/30 flex-shrink-0">
-              <FileText className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-white font-sans">
-                Legislative Information System <span className="text-blue-400 font-semibold">(LIS)</span>
-              </h1>
-              <p className="text-xs text-slate-300 font-medium">
-                Municipality of Mutia, Zamboanga del Norte
-              </p>
-            </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-white font-sans">
+              Legislative Information System <span className="text-blue-400 font-semibold">(LIS)</span>
+            </h1>
+            <p className="text-xs text-slate-300 font-medium">
+              Municipality of Mutia, Zamboanga del Norte
+            </p>
           </div>
 
           {/* Primary Tabs */}
